@@ -22,12 +22,12 @@ public class SchedulePiece {
 		//in = soundCount - 1;
 	}
 	
-	public SchedulePiece(int endTime, Integer[] soundIndecies){
+	public SchedulePiece(int endTime, Object[] soundIndecies){
 		this.endTime = endTime;
 		
 		this.soundIndecies = new int[soundIndecies.length];
 		for(int index=0; index<soundIndecies.length; index++)
-			this.soundIndecies[index] = soundIndecies[index];
+			this.soundIndecies[index] = (Integer)soundIndecies[index];
 	}
 	
 	public int getSoundIndex(int index){

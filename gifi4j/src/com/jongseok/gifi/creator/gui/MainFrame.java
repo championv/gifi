@@ -1,4 +1,4 @@
-package com.jongseok.gifi.gui;
+package com.jongseok.gifi.creator.gui;
 
 import java.awt.Dimension;
 import java.awt.KeyEventDispatcher;
@@ -17,6 +17,8 @@ import javax.swing.SpringLayout;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.jongseok.gifi.Gifi;
+import com.jongseok.gifi.audio.GifiInteractiveSound;
 import com.jongseok.gifi.gif.Gif;
 import com.jongseok.gifi.gif.GifFactory;
 
@@ -29,7 +31,7 @@ public class MainFrame extends JFrame implements ActionListener, ChangeListener,
 	private GifPanel gifPanel;
 	private JButton openGifButton;
 	private JButton openSoundButton;
-	private JButton generateButton;
+	private JButton renderingButton;
 	private GifTimelineSliderPanel timelineSliderPanel;
 	private SoundCirclePanelList scPanelList;
 	
@@ -42,12 +44,13 @@ public class MainFrame extends JFrame implements ActionListener, ChangeListener,
 		gifPanel = new GifPanel();
 		openGifButton = new JButton("Open GIF");
 		openSoundButton = new JButton("Open Sound");
-		generateButton = new JButton("Generate");
+		renderingButton = new JButton("Render");
 		
 		//gifPanel.addKeyListener(this);
 		openGifButton.addActionListener(this);
 		openSoundButton.addActionListener(this);
 		openSoundButton.setEnabled(false);
+		renderingButton.addActionListener(this);
 		
 		// set layout
 		layout = new SpringLayout();
@@ -60,13 +63,13 @@ public class MainFrame extends JFrame implements ActionListener, ChangeListener,
 		layout.putConstraint(SpringLayout.WEST, openSoundButton, 5, SpringLayout.EAST, gifPanel);
 		//layout.putConstraint(SpringLayout.EAST, openSoundButton, 5, SpringLayout.EAST, this);
 		layout.putConstraint(SpringLayout.NORTH, openSoundButton, 5, SpringLayout.SOUTH, openGifButton);
-		layout.putConstraint(SpringLayout.WEST, generateButton, 5, SpringLayout.EAST, gifPanel);
-		layout.putConstraint(SpringLayout.NORTH, generateButton, 5, SpringLayout.SOUTH, openSoundButton);
+		layout.putConstraint(SpringLayout.WEST, renderingButton, 5, SpringLayout.EAST, gifPanel);
+		layout.putConstraint(SpringLayout.NORTH, renderingButton, 5, SpringLayout.SOUTH, openSoundButton);
 		
 		add(gifPanel);
 		add(openGifButton);
 		add(openSoundButton);
-		add(generateButton);
+		add(renderingButton);
 		
 		// add keyboard dispatcher
 		KeyboardFocusManager keyboardManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
@@ -84,6 +87,25 @@ public class MainFrame extends JFrame implements ActionListener, ChangeListener,
 		setLocation(x, y);
 		setVisible(true);
 	}
+	
+	public GifiInteractiveSound generateGifiInteractiveSound(){
+		try{
+			return new GifiInteractiveSound(scPanelList.getSoundCircles());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	private void generateGifi(){
+		try{
+			Gifi.saveGifiAsFile(new Gifi(gif, generateGifiInteractiveSound()), "hello.gifi");
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
 	
 	public void packFrameSize(){
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -141,10 +163,6 @@ public class MainFrame extends JFrame implements ActionListener, ChangeListener,
 		packFrameSize();
 	}
 	
-	private void generateGifi(){
-		
-	}
-
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
@@ -155,7 +173,7 @@ public class MainFrame extends JFrame implements ActionListener, ChangeListener,
 		else if(e.getSource() == openSoundButton)
 			openSound();
 		
-		else if(e.getSource() == generateButton)
+		else if(e.getSource() == renderingButton)
 			generateGifi();
 	}
 

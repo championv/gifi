@@ -1,6 +1,7 @@
 package com.jongseok.gifi.gif;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.file.Files;
 
@@ -38,12 +39,38 @@ public class Gif {
 		}
 	}
 	
+	public Gif(byte[] bytes, int offset, int length){
+		
+		try{
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			bos.write(bytes, offset, length);
+			
+			this.bytes = bos.toByteArray();
+			img = GifDecoder.read(this.bytes);
+			
+			playingTime = getFrameFinishingTime(getFrameCount()-1);
+			
+			System.out.println(filename + " info");
+			System.out.println("  frame count: " + img.getFrameCount());
+			System.out.println("  playing time: " + playingTime);
+			
+			bos.close();
+			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
 	public String getFileName(){
 		return filename;
 	}
 	
 	public int getPlayingTime(){
 		return playingTime;
+	}
+	
+	public int getFileSizeInByte(){
+		return bytes.length;
 	}
 	
 	public byte[] toBytes(){

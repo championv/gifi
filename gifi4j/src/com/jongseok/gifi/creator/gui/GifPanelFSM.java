@@ -1,4 +1,4 @@
-package com.jongseok.gifi.gui;
+package com.jongseok.gifi.creator.gui;
 
 import java.awt.Color;
 import java.awt.Component;

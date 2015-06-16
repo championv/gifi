@@ -1,4 +1,4 @@
-package com.jongseok.gifi.gui;
+package com.jongseok.gifi.creator.gui;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -14,12 +14,12 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
 import com.jongseok.gifi.audio.SoundCircle;
+import com.jongseok.gifi.creator.gui.GifPanelFSM.DataKey;
+import com.jongseok.gifi.creator.gui.GifPanelFSM.DrawingSC;
+import com.jongseok.gifi.creator.gui.GifPanelFSM.NoSC;
+import com.jongseok.gifi.creator.gui.GifPanelFSM.PaintingSC;
+import com.jongseok.gifi.creator.gui.GifPanelFSM.SCchoosen;
 import com.jongseok.gifi.gif.Gif;
-import com.jongseok.gifi.gui.GifPanelFSM.DataKey;
-import com.jongseok.gifi.gui.GifPanelFSM.DrawingSC;
-import com.jongseok.gifi.gui.GifPanelFSM.NoSC;
-import com.jongseok.gifi.gui.GifPanelFSM.PaintingSC;
-import com.jongseok.gifi.gui.GifPanelFSM.SCchoosen;
 import com.jongseok.gifi.utils.Bundle;
 
 public class GifPanel extends JPanel implements SoundCircleGenerator, MouseListener, MouseMotionListener{

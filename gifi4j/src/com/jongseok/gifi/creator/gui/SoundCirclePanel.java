@@ -1,4 +1,4 @@
-package com.jongseok.gifi.gui;
+package com.jongseok.gifi.creator.gui;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -383,8 +383,11 @@ public class SoundCirclePanel extends JPanel implements ActionListener, MouseLis
 			if(minVolumeTextField.getText().equals(""))
 					minVolumeTextField.setText("0");
 			
-			if(!validateIntegerString(minVolumeTextField.getText()))
+			else if(!validateIntegerString(minVolumeTextField.getText()))
 				minVolumeTextField.setText("0");
+			
+			else if(null != sc)
+				sc.minVolume = Integer.parseInt(minVolumeTextField.getText());
 		}
 		
 		else if(e.getSource() == maxVolumeTextField){
@@ -393,8 +396,11 @@ public class SoundCirclePanel extends JPanel implements ActionListener, MouseLis
 			if(maxVolumeTextField.getText().equals(""))
 				maxVolumeTextField.setText("0");
 			
-			if(!validateIntegerString(maxVolumeTextField.getText()))
+			else if(!validateIntegerString(maxVolumeTextField.getText()))
 				maxVolumeTextField.setText("0");
+			
+			else if(null != sc)
+				sc.maxVolume = Integer.parseInt(maxVolumeTextField.getText());
 		}
 		
 	}
@@ -419,6 +425,11 @@ public class SoundCirclePanel extends JPanel implements ActionListener, MouseLis
 		this.sc = sc;
 		
 		//gifpanel.addSoundCircle(this, sc);
+	}
+	
+	@Override
+	public SoundCircle getSoundCircle(){
+		return sc;
 	}
 
 	@Override

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+import com.jongseok.gifi.utils.BinaryUtil;
 import com.jongseok.gifi.utils.Range;
 
 public class SoundCircle {
@@ -31,6 +32,7 @@ public class SoundCircle {
 	public ArrayList<Range> playingTimeSegments;
 	
 	public byte[] bytes;
+	private int size;
 	
 	//public ArrayList<ScheduleRecord> scheduleRecords = new ArrayList<ScheduleRecord>();
 	
@@ -57,15 +59,24 @@ public class SoundCircle {
 		playingTimeSegments = new ArrayList<Range>();
 		centers = new Hashtable<Integer, Point>();
 		//centers.put(DEFAULT_INITIAL_CIRCLE_TIMING, center);
-		centers.put(time, center);
+		if(null != center && -1 != time)
+			centers.put(time, center);
 		
-		this.sound = sound;
-		this.audioFileSize = sound.bytes.length;// + 20; 
+		if(null != sound){
+			this.sound = sound;
+			this.audioFileSize = sound.bytes.length;// + 20;
+		}
+		
 		this.radius = radius;
 		//this.center = center;
 		this.minVolume = minVolume;
 		this.maxVolume = maxVolume;
 		this.color = color;
+	}
+	
+	
+	public void setCircles(Hashtable<Integer, Point> centers){
+		this.centers = centers;
 	}
 	
 	public void addCircleAt(int time, Point p){
@@ -198,6 +209,10 @@ public class SoundCircle {
 		maxVolume = v;
 	}
 	
+	public int getSize(){
+		return size;
+	}
+	
 	
 	// TODO: fix it!
 	/* Binary Format
@@ -220,28 +235,82 @@ public class SoundCircle {
 			// TODO: error!
 			bos.write(format.getBytes());
 			bos.write(version.getBytes());
-			bos.write(radius);
+			bos.write(BinaryUtil.intToBytes(radius));
 			//bos.write(center.x);
 			//bos.write(center.y);
-			bos.write(minVolume);
-			bos.write(maxVolume);
-			bos.write(centers.size());
+			bos.write(BinaryUtil.intToBytes(minVolume));
+			bos.write(BinaryUtil.intToBytes(maxVolume));
+			bos.write(BinaryUtil.intToBytes(centers.size()));
 			
 			for(int time: centers.keySet()){
 				Point p = centers.get(time);
-				bos.write(time);
-				bos.write(p.x);
-				bos.write(p.y);
+				bos.write(BinaryUtil.intToBytes(time));
+				bos.write(BinaryUtil.intToBytes(p.x));
+				bos.write(BinaryUtil.intToBytes(p.y));
 			}
 			
-			bos.write(audioFileSize);
+			bos.write(BinaryUtil.intToBytes(audioFileSize));
 			bos.write(sound.bytes);
 			bos.close();
 			
 			bytes = bos.toByteArray();
+			size = bytes.length;
 		}
 		
 		return bytes;
+	}
+	
+	public static SoundCircle decode(byte[] bytes, int offset) throws IOException{
+		int initialOffset = offset;
+		
+		// check format and version
+		if(!format.equals(BinaryUtil.toString(bytes, offset, format.length())))
+			return null;
+		offset += format.length();
+		
+		if(!version.equals(BinaryUtil.toString(bytes, offset, version.length())))
+			return null;
+		offset += version.length();
+		
+		int radius = BinaryUtil.toInt(bytes, offset);
+		offset += 4;
+		
+		int minVolume = BinaryUtil.toInt(bytes, offset);
+		offset += 4;
+		
+		int maxVolume = BinaryUtil.toInt(bytes, offset);
+		offset += 4;
+		
+		int centersCount = BinaryUtil.toInt(bytes, offset);
+		offset += 4;
+		
+		Hashtable<Integer, Point> centers = new Hashtable<Integer, Point>();
+		for(int index=0; index<centersCount; index++){
+			int time = BinaryUtil.toInt(bytes, offset);
+			offset += 4;
+			
+			int x = BinaryUtil.toInt(bytes, offset);
+			offset += 4;
+			
+			int y = BinaryUtil.toInt(bytes, offset);
+			offset += 4;
+			
+			centers.put(time, new Point(x, y));
+		}
+		
+		int audioFileSize = BinaryUtil.toInt(bytes, offset);
+		offset += 4;
+		
+		byte[] soundBytes = new byte[audioFileSize];
+		soundBytes = BinaryUtil.cloneByte(bytes, offset, audioFileSize);
+		Sound sound = new Sound(soundBytes);
+		offset += audioFileSize;
+		
+		//TODO: read sound from bytes
+		//public SoundCircle(Sound sound, int time, int radius, Point center, int minVolume, int maxVolume, Color color){
+		SoundCircle sc = new SoundCircle(sound, -1, radius, null, minVolume, maxVolume, null);
+		sc.size = offset - initialOffset;
+		return sc;
 	}
 	
 }

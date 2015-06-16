@@ -1,10 +1,12 @@
-package com.jongseok.gifi.gui;
+package com.jongseok.gifi.creator.gui;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
 
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
+
+import com.jongseok.gifi.audio.SoundCircle;
 
 public class SoundCirclePanelList extends JPanel{
 	
@@ -23,13 +25,22 @@ public class SoundCirclePanelList extends JPanel{
 		layout = new SpringLayout();
 		setLayout(layout);
 	}
-
+/*
 	public void markSelectedTime(int x){
 		
 	}
 	
 	public void dehighlightPanels(){
 		
+	}*/
+	
+	public ArrayList<SoundCircle> getSoundCircles(){
+		ArrayList<SoundCircle> soundCircles = new ArrayList<SoundCircle>(scPanels.size());
+		
+		for(SoundCircleListener scl: scPanels)
+			soundCircles.add(scl.getSoundCircle());
+		
+		return soundCircles;
 	}
 	
 	public void setTimingLine(int x, int time){

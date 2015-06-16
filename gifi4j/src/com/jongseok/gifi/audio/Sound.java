@@ -25,6 +25,10 @@ public class Sound {
 		playingTime = (int)((float)frameCount * 1000 / frameRate);
 	}
 	
+	public Sound(byte[] bytes){
+		this.bytes = bytes;
+	}
+	
 
 	public void readSoundFromFile(String filepath){
 		int totalFramesRead = 0;
