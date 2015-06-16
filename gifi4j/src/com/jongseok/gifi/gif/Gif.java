@@ -28,6 +28,10 @@ public class Gif {
 			playingTime *= 10;*/
 			
 			playingTime = getFrameFinishingTime(getFrameCount()-1);
+			
+			System.out.println(filename + " info");
+			System.out.println("  frame count: " + img.getFrameCount());
+			System.out.println("  playing time: " + playingTime);
 		
 		}catch(Exception e){
 			e.printStackTrace();

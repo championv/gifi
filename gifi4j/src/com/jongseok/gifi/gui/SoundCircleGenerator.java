@@ -6,5 +6,5 @@ public interface SoundCircleGenerator {
 
 	public void setSoundCircleListener(SoundCircleListener scl);
 	public void setNewSoundCircleColor(Color color);
-	public void setSoundCirclesVisible(boolean visible);
+	//public void setSoundCirclesVisible(boolean visible);
 }

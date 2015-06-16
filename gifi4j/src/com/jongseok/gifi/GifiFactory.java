@@ -7,7 +7,7 @@ import com.jongseok.gifi.gif.Gif;
 
 public class GifiFactory {
 
-	public static Gifi createGifi(Gif gif, ArrayList<SoundCircle> soundCircles){
+	/*public static Gifi createGifi(Gif gif, ArrayList<SoundCircle> soundCircles){
 		return new Gifi(gif, soundCircles);
-	}
+	}*/
 }

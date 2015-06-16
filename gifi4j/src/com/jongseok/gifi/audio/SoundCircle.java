@@ -5,57 +5,184 @@ import java.awt.Point;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Hashtable;
+
+import com.jongseok.gifi.utils.Range;
 
 public class SoundCircle {
 	public static String format = "GIFi-SoundCircle";
 	public static String version = "2015a";
 	
+	//private static final int DEFAULT_INITIAL_CIRCLE_TIMING = -1;
+	//private static final int DEFAULT_INITIAL_CIRCLE_TIMING = 0;
+	
 	public Sound sound;
 	public int audioFileSize;	// excluding signature, version, and size
 	public int radius;
-	public Point center;
+	//public Point center;
 	//public int centerX;
 	//public int centerY;
 	public int minVolume;
 	public int maxVolume;
 	public Color color;
 	
+	// TODO: implement it as binary tree
+	public Hashtable<Integer, Point> centers;
+	public ArrayList<Range> playingTimeSegments;
+	
 	public byte[] bytes;
 	
-	public ArrayList<ScheduleRecord> scheduleRecords = new ArrayList<ScheduleRecord>();
+	//public ArrayList<ScheduleRecord> scheduleRecords = new ArrayList<ScheduleRecord>();
 	
-	public SoundCircle(int radius, Point center, Color color){
+	public SoundCircle(int time, int radius, Point center, Color color){
+		playingTimeSegments = new ArrayList<Range>();
+		centers = new Hashtable<Integer, Point>();
+		//centers.put(DEFAULT_INITIAL_CIRCLE_TIMING, center);
+		centers.put(time, center);
+		
 		this.radius = radius;
-		this.center = center;
+		//this.center = center;
 		this.color = color;
 	}
 	
-	public SoundCircle(String soundFilePath, int radius, Point center, Color color){
-		this(new Sound(soundFilePath), radius, center, color);
+	public SoundCircle(String soundFilePath, int time, int radius, Point center, Color color){
+		this(new Sound(soundFilePath), time, radius, center, color);
 	}
 	
-	public SoundCircle(Sound sound, int radius, Point center, Color color){
-		this(sound, radius, center, 0, 0, color);
+	public SoundCircle(Sound sound, int time, int radius, Point center, Color color){
+		this(sound, time, radius, center, 0, 0, color);
 	}
 	
-	public SoundCircle(Sound sound, int radius, Point center, int minVolume, int maxVolume, Color color){
+	public SoundCircle(Sound sound, int time, int radius, Point center, int minVolume, int maxVolume, Color color){
+		playingTimeSegments = new ArrayList<Range>();
+		centers = new Hashtable<Integer, Point>();
+		//centers.put(DEFAULT_INITIAL_CIRCLE_TIMING, center);
+		centers.put(time, center);
+		
 		this.sound = sound;
 		this.audioFileSize = sound.bytes.length;// + 20; 
 		this.radius = radius;
-		this.center = center;
+		//this.center = center;
 		this.minVolume = minVolume;
 		this.maxVolume = maxVolume;
 		this.color = color;
 	}
 	
-	@Override
-	public String toString(){
-		return "Color:" + color + " Center:" + center + " Radius:" + radius + "MinVolume:" + minVolume + " MaxVolume:" + maxVolume;
+	public void addCircleAt(int time, Point p){
+		centers.put(time, p);
 	}
 	
-	public boolean contains(Point p){
-		int d = (int)Math.sqrt(Math.pow(center.x-p.x, 2) + Math.pow(center.y-p.y, 2));
+	public void removeCircles(){
+		centers = new Hashtable<Integer, Point>();
+	}
+	
+	public void removeCirclesAtAndAfter(int time){
+		ArrayList<Integer> keysToRemove = new ArrayList<Integer>();
 		
+		for(int t: centers.keySet()){
+			if(t >= time)
+				keysToRemove.add(t);
+		}
+		
+		// remove
+		for(int key: keysToRemove)
+			centers.remove(key);
+	}
+	
+	public void addTimingSegment(Range r){
+		
+		playingTimeSegments.add(r);
+	}
+
+	/*// add offset for playing start point
+	public void addPlayingPlan(int start, int end) throws Exception{
+		if(start >= end)
+			throw new Exception("Invalid time range! [" + start +", " + end + "]");
+		
+		scheduleRecords.add(new ScheduleRecord(start, true));
+		scheduleRecords.add(new ScheduleRecord(end, false));
+	}
+	
+	public ArrayList<ScheduleRecord> getScheduleRecords(){
+		return scheduleRecords;
+	}*/
+	
+	public ArrayList<ScheduleRecord> convertTimingSegments2schedulRecords() throws Exception{
+		ArrayList<ScheduleRecord> scheduleRecords = new ArrayList<ScheduleRecord>();
+		
+		for(Range r: playingTimeSegments){
+			if(r.from >= r.to)
+				throw new Exception("Invalid time range! [" + r.from +", " + r.to + "]");
+			
+			scheduleRecords.add(new ScheduleRecord(r.from, true));
+			scheduleRecords.add(new ScheduleRecord(r.to, false));
+		}
+		
+		return scheduleRecords;
+	}
+	
+	@Override
+	public String toString(){
+		return "Color:" + color + " Centers:" + centers + " Radius:" + radius + "MinVolume:" + minVolume + " MaxVolume:" + maxVolume;
+	}
+	
+	// find the positions right before and right after the input time in the table.
+	public Point getCirclePointAt(int time){
+		System.out.println("centers.size=" + centers.size());
+		if(centers.size() == 0)
+			return null;
+
+		// get the circle position at the specified time.
+		else if(centers.size() == 1)
+			//return centers.get(0);
+			return centers.values().iterator().next();
+		
+		else if(null != centers.get(time))
+			return centers.get(time);
+		
+		//int rightBeforeTime = Integer.MIN_VALUE;
+		int rightBeforeTime = -1;
+		int rightAfterTime = Integer.MAX_VALUE;
+		
+		for(int t: centers.keySet()){
+			if(t<time && (time-t) < (time-rightBeforeTime))
+				rightBeforeTime = t;
+			
+			else if(time<t && (t-time) < (rightAfterTime-time))
+				rightAfterTime = t;
+		}
+		
+		// case 1:  
+		if(Integer.MAX_VALUE == rightAfterTime)
+			return centers.get(rightBeforeTime);
+		
+		// case 2:
+		if(-1 == rightBeforeTime)
+			//return null;
+			return centers.get(rightAfterTime);
+		
+		// case 3: both right before and after time exist.
+		// linearly interpolate two points.
+		Point rightBefore = centers.get(rightBeforeTime);
+		Point rightAfter = centers.get(rightAfterTime);
+		System.out.println("RigtBefore: " + rightBefore + " At " + rightBeforeTime);
+		System.out.println("RightAfter: " + rightAfter + " At " + rightAfterTime);
+		
+		double delta_t = rightAfterTime-rightBeforeTime;
+		int x =(int)( ((double)(rightAfter.x-rightBefore.x)) / delta_t * ((double)time-rightBeforeTime) + rightBefore.x );
+		int y =(int)( ((double)(rightAfter.y-rightBefore.y)) / delta_t * ((double)time-rightBeforeTime) + rightBefore.y );
+		
+		return new Point(x,y);
+	}
+	
+	public boolean contains(Point p, int time){
+		//int d = (int)Math.sqrt(Math.pow(center.x-p.x, 2) + Math.pow(center.y-p.y, 2));
+
+		Point center = getCirclePointAt(time);
+		if(null == center)
+			return false;
+		
+		int d = (int)Math.sqrt(Math.pow(center.x-p.x, 2) + Math.pow(center.y-p.y, 2));
 		return d <= radius;
 	}
 	
@@ -72,6 +199,7 @@ public class SoundCircle {
 	}
 	
 	
+	// TODO: fix it!
 	/* Binary Format
 	 * 
 	 * format 			(13 bytes)
@@ -85,7 +213,7 @@ public class SoundCircle {
 	 * audio file		(N bytes)
 	 * 
 	 * */
-	public byte[] toBytes() throws IOException{
+	public byte[] encode() throws IOException{
 		if(null == bytes){
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			
@@ -93,10 +221,19 @@ public class SoundCircle {
 			bos.write(format.getBytes());
 			bos.write(version.getBytes());
 			bos.write(radius);
-			bos.write(center.x);
-			bos.write(center.y);
+			//bos.write(center.x);
+			//bos.write(center.y);
 			bos.write(minVolume);
 			bos.write(maxVolume);
+			bos.write(centers.size());
+			
+			for(int time: centers.keySet()){
+				Point p = centers.get(time);
+				bos.write(time);
+				bos.write(p.x);
+				bos.write(p.y);
+			}
+			
 			bos.write(audioFileSize);
 			bos.write(sound.bytes);
 			bos.close();
@@ -107,16 +244,4 @@ public class SoundCircle {
 		return bytes;
 	}
 	
-	// add offset for playing start point
-	public void addPlayingPlan(int start, int end) throws Exception{
-		if(start >= end)
-			throw new Exception("Invalid time range! [" + start +", " + end + "]");
-		
-		scheduleRecords.add(new ScheduleRecord(start, true));
-		scheduleRecords.add(new ScheduleRecord(end, false));
-	}
-	
-	public ArrayList<ScheduleRecord> getScheduleRecords(){
-		return scheduleRecords;
-	}
 }

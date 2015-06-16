@@ -3,6 +3,7 @@ package com.jongseok.gifi.gui;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Hashtable;
 
@@ -16,10 +17,12 @@ import com.jongseok.gifi.gif.Gif;
 
 public class GifTimelineSliderPanel extends JPanel{
 	
-	public static final int TIMELINE_JSLIDER_WIDTH = 500;
-	public static final int TIMELINE_JSLIDER_HEIGHT = 50;
-	public static final int GIF_TIMELINE_SLIDER_WIDTH = MainFrame.FILENAME_LABEL_WIDTH + TIMELINE_JSLIDER_WIDTH;
-	public static final int GIF_TIMELINE_SLIDER_HEIGHT = TIMELINE_JSLIDER_HEIGHT;
+	public static final int JSLIDER_WIDTH = 500;
+	public static final int JSLIDER_HEIGHT = 50;
+	public static final int JSLIDER_MINOR_TICK_SPACE = 100;
+	public static final int JSLIDER_MAJOR_TICK_SPACE = 1000;
+	public static final int GIF_TIMELINE_SLIDER_WIDTH = MainFrame.FILENAME_LABEL_WIDTH + JSLIDER_WIDTH;
+	public static final int GIF_TIMELINE_SLIDER_HEIGHT = JSLIDER_HEIGHT;
 	
 	private JLabel label;
 	private JSlider slider;
@@ -39,9 +42,9 @@ public class GifTimelineSliderPanel extends JPanel{
 		for(int index=0; index<gif.getFrameCount(); index++)
 			labels.put(gif.getFrameStartingTime(index), new JLabel("#" + (index+1)));
 		
-		slider.setPreferredSize(new Dimension(TIMELINE_JSLIDER_WIDTH, TIMELINE_JSLIDER_HEIGHT));
-		slider.setMinorTickSpacing(100);
-		slider.setMajorTickSpacing(1000);
+		slider.setPreferredSize(new Dimension(JSLIDER_WIDTH, JSLIDER_HEIGHT));
+		slider.setMinorTickSpacing(JSLIDER_MINOR_TICK_SPACE);
+		slider.setMajorTickSpacing(JSLIDER_MAJOR_TICK_SPACE);
 		slider.setPaintLabels(true);
 		slider.setPaintTicks(true);
 		slider.setSnapToTicks(true);
@@ -63,6 +66,7 @@ public class GifTimelineSliderPanel extends JPanel{
 		setPreferredSize(new Dimension(GIF_TIMELINE_SLIDER_WIDTH, GIF_TIMELINE_SLIDER_HEIGHT));
 	}
 	
+	
 
 	@Override
 	public void paintComponent(Graphics g){
@@ -78,12 +82,12 @@ public class GifTimelineSliderPanel extends JPanel{
 	public int getSnappedTimingLineCoordiateX(){
 		int snappedValue  = slider.getValue() / 100 * 100;
 		return 5 + MainFrame.FILENAME_LABEL_WIDTH + 13
-				+ (int)((float)snappedValue / (float)slider.getMaximum() * (TIMELINE_JSLIDER_WIDTH - SoundCirclePanel.TIMELINE_WIDTH_OFFSET));
+				+ (int)((float)snappedValue / (float)slider.getMaximum() * (JSLIDER_WIDTH - SoundCirclePanel.TIMELINE_WIDTH_OFFSET));
 	}
 	
 	public int getTimingLineCoordinateX(){
 		return 5 + MainFrame.FILENAME_LABEL_WIDTH + 13
-				+ (int)((float)slider.getValue() / (float)slider.getMaximum() * (TIMELINE_JSLIDER_WIDTH - SoundCirclePanel.TIMELINE_WIDTH_OFFSET)); 
+				+ (int)((float)slider.getValue() / (float)slider.getMaximum() * (JSLIDER_WIDTH - SoundCirclePanel.TIMELINE_WIDTH_OFFSET)); 
 	}
 	
 	public JSlider getSlider(){
@@ -94,12 +98,39 @@ public class GifTimelineSliderPanel extends JPanel{
 		slider.addChangeListener(listener);
 	}
 	
+	@Override
 	public void addMouseMotionListener(MouseMotionListener listener){
 		slider.addMouseMotionListener(listener);
+	}
+	
+	@Override
+	public void addMouseListener(MouseListener listener){
+		slider.addMouseListener(listener);
+	}
+	
+	public void setValue(int time){
+		slider.setValue(time);
 	}
 	
 	
 	public int getValue(){
 		return slider.getValue();
+	}
+	
+	public void increaseValueByMinorTickSpace(){
+		int value = getValue();
+
+		if(value+JSLIDER_MINOR_TICK_SPACE > slider.getMaximum())
+			return;
+		
+		setValue(value + JSLIDER_MINOR_TICK_SPACE);
+	}
+	
+	public void decreaseValueByMinorTickSpace(){
+		int value = getValue();
+		if(value-JSLIDER_MINOR_TICK_SPACE < 0)
+			return;
+		
+		setValue(value - JSLIDER_MINOR_TICK_SPACE);
 	}
 }

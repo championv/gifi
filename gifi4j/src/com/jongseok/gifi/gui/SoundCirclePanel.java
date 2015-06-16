@@ -52,7 +52,7 @@ public class SoundCirclePanel extends JPanel implements ActionListener, MouseLis
 	private Rectangle soundTimingRect;
 	private int timingSegmentDrawingHeight;
 	private ArrayList<Range> timingSegmentDrawings;
-	private ArrayList<Range> timingSegments;
+	//private ArrayList<Range> timingSegments;
 	private Range newTimingSegmentDrawing;
 	private Range newTimingSegment;
 	private Range animationTimeRange;
@@ -144,7 +144,7 @@ public class SoundCirclePanel extends JPanel implements ActionListener, MouseLis
 		frameLayout.putConstraint(SpringLayout.VERTICAL_CENTER, deleteButton, 0, SpringLayout.VERTICAL_CENTER, this);
 		
 		frameLayout.putConstraint(SpringLayout.WEST, filenameLabel, 5, SpringLayout.WEST, this);
-		frameLayout.putConstraint(SpringLayout.WEST, volumePanel, 5 + GifTimelineSliderPanel.TIMELINE_JSLIDER_WIDTH - TIMELINE_WIDTH_OFFSET + 5
+		frameLayout.putConstraint(SpringLayout.WEST, volumePanel, 5 + GifTimelineSliderPanel.JSLIDER_WIDTH - TIMELINE_WIDTH_OFFSET + 5
 				+ 5, SpringLayout.EAST, filenameLabel);
 		frameLayout.putConstraint(SpringLayout.WEST, circleSettingButton, 10, SpringLayout.EAST, volumePanel);
 		frameLayout.putConstraint(SpringLayout.WEST, deleteButton, 0, SpringLayout.EAST, circleSettingButton);
@@ -170,11 +170,11 @@ public class SoundCirclePanel extends JPanel implements ActionListener, MouseLis
 		// setup sound timing rect
 		int x = 5 + filenameLabel.getPreferredSize().width + 5;
 		int y = 5;
-		int width = GifTimelineSliderPanel.TIMELINE_JSLIDER_WIDTH - TIMELINE_WIDTH_OFFSET + 5;
+		int width = GifTimelineSliderPanel.JSLIDER_WIDTH - TIMELINE_WIDTH_OFFSET + 5;
 		int height = volumePanel.getPreferredSize().height;
 		soundTimingRect = new Rectangle(x, y, width, height);
 		timingSegmentDrawings = new ArrayList<Range>();
-		timingSegments = new ArrayList<Range>();
+		//timingSegments = new ArrayList<Range>();
 		timingSegmentDrawingHeight = height - 7;
 		
 				
@@ -221,7 +221,7 @@ public class SoundCirclePanel extends JPanel implements ActionListener, MouseLis
 	private void packPanel(){
 		packVolumePanel();
 		
-		int width = 5 + filenameLabel.getPreferredSize().width + 5 + GifTimelineSliderPanel.TIMELINE_JSLIDER_WIDTH - TIMELINE_WIDTH_OFFSET + 5 + 5 
+		int width = 5 + filenameLabel.getPreferredSize().width + 5 + GifTimelineSliderPanel.JSLIDER_WIDTH - TIMELINE_WIDTH_OFFSET + 5 + 5 
 				+ volumePanel.getPreferredSize().width + 10 + circleSettingButton.getPreferredSize().width 
 				+ deleteButton.getPreferredSize().width; 
 		int height = 5 + volumePanel.getPreferredSize().height + 5;
@@ -253,7 +253,7 @@ public class SoundCirclePanel extends JPanel implements ActionListener, MouseLis
 			
 			/*if(null != sc)
 				gifpanel.removeSoundCircle(sc);*/
-			scGenerator.setSoundCirclesVisible(true);
+			//scGenerator.setSoundCirclesVisible(true);
 		}
 		
 		else if(e.getSource() == deleteButton){
@@ -271,7 +271,8 @@ public class SoundCirclePanel extends JPanel implements ActionListener, MouseLis
 		if(timingSegment.isOutOf(animationTimeRange))
 			return true;
 		
-		for(Range r: timingSegments){
+		//for(Range r: timingSegments){
+		for(Range r: sc.playingTimeSegments){
 			if(r== timingSegment)
 				continue;
 			
@@ -306,7 +307,8 @@ public class SoundCirclePanel extends JPanel implements ActionListener, MouseLis
 				}
 				
 			
-				timingSegments.add(newTimingSegment);
+				//timingSegments.add(newTimingSegment);
+				sc.addTimingSegment(newTimingSegment);
 				timingSegmentDrawings.add(newTimingSegmentDrawing);
 				newTimingSegment = null;
 				newTimingSegmentDrawing = null;
@@ -331,15 +333,13 @@ public class SoundCirclePanel extends JPanel implements ActionListener, MouseLis
 		
 			//TODO
 			float ratio = (float)sound.playingTime / (float)animationPlayingTime;
-			int drawingTo = timingLineDrawing + (int)(ratio * (GifTimelineSliderPanel.TIMELINE_JSLIDER_WIDTH - this.TIMELINE_WIDTH_OFFSET));
+			int drawingTo = timingLineDrawing + (int)(ratio * (GifTimelineSliderPanel.JSLIDER_WIDTH - this.TIMELINE_WIDTH_OFFSET));
 			newTimingSegmentDrawing = new Range(timingLineDrawing, drawingTo);
 			newTimingSegment = new Range(currentTiming, currentTiming + sound.playingTime);
 			repaint();
 		}
 	}
 	
-	
-
 
 	@Override
 	public void mouseReleased(MouseEvent e) {

@@ -51,7 +51,7 @@ public class SoundSchedule {
 	 * schedulePiece	(N bytes)
 	 * 
 	 * */
-	public byte[] toByteArray() throws IOException{
+	public byte[] encode() throws IOException{
 		if(isScheduleUpdated || null==bytes){
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			

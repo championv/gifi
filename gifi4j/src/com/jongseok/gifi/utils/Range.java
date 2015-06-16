@@ -16,6 +16,10 @@ public class Range {
 		return true;
 	}
 	
+	public boolean isEarlierThan(Range r){
+		return from < r.from;
+	}
+	
 	public boolean conflictWith(Range r){
 		if( (from<=r.from && r.from<=to) || (from<=r.to && r.to<=to))
 			return true;

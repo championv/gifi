@@ -1,9 +1,12 @@
 package com.jongseok.gifi.gui;
 
 import java.awt.Dimension;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -17,7 +20,7 @@ import javax.swing.event.ChangeListener;
 import com.jongseok.gifi.gif.Gif;
 import com.jongseok.gifi.gif.GifFactory;
 
-public class MainFrame extends JFrame implements ActionListener, ChangeListener, MouseListener, MouseMotionListener{
+public class MainFrame extends JFrame implements ActionListener, ChangeListener, MouseListener, MouseMotionListener, KeyEventDispatcher{
 	
 	public static final int FILENAME_LABEL_WIDTH = 125;
 	public static final int FILENAME_LABEL_HEIGHT = 30;
@@ -26,6 +29,7 @@ public class MainFrame extends JFrame implements ActionListener, ChangeListener,
 	private GifPanel gifPanel;
 	private JButton openGifButton;
 	private JButton openSoundButton;
+	private JButton generateButton;
 	private GifTimelineSliderPanel timelineSliderPanel;
 	private SoundCirclePanelList scPanelList;
 	
@@ -38,7 +42,9 @@ public class MainFrame extends JFrame implements ActionListener, ChangeListener,
 		gifPanel = new GifPanel();
 		openGifButton = new JButton("Open GIF");
 		openSoundButton = new JButton("Open Sound");
+		generateButton = new JButton("Generate");
 		
+		//gifPanel.addKeyListener(this);
 		openGifButton.addActionListener(this);
 		openSoundButton.addActionListener(this);
 		openSoundButton.setEnabled(false);
@@ -54,10 +60,17 @@ public class MainFrame extends JFrame implements ActionListener, ChangeListener,
 		layout.putConstraint(SpringLayout.WEST, openSoundButton, 5, SpringLayout.EAST, gifPanel);
 		//layout.putConstraint(SpringLayout.EAST, openSoundButton, 5, SpringLayout.EAST, this);
 		layout.putConstraint(SpringLayout.NORTH, openSoundButton, 5, SpringLayout.SOUTH, openGifButton);
+		layout.putConstraint(SpringLayout.WEST, generateButton, 5, SpringLayout.EAST, gifPanel);
+		layout.putConstraint(SpringLayout.NORTH, generateButton, 5, SpringLayout.SOUTH, openSoundButton);
 		
 		add(gifPanel);
 		add(openGifButton);
 		add(openSoundButton);
+		add(generateButton);
+		
+		// add keyboard dispatcher
+		KeyboardFocusManager keyboardManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+		keyboardManager.addKeyEventDispatcher(this);
 		
 		
 		// show
@@ -90,60 +103,71 @@ public class MainFrame extends JFrame implements ActionListener, ChangeListener,
 		setBounds(x, y, width, height);
 	}
 	
+	private void openGif(){
+		// open GIF
+		try{
+			gif = GifFactory.readGif("Boglio_02.gif");
+			//gif = GifFactory.readGif("monkeys.gif");
+			gifPanel.openGif(gif);
+			gifPanel.showFrame(0);
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}
+		
+		// init timeline
+		timelineSliderPanel = new GifTimelineSliderPanel(gif);
+		timelineSliderPanel.addChangeListener(this);
+		timelineSliderPanel.addMouseListener(this);
+		timelineSliderPanel.addMouseMotionListener(this);
+		layout.putConstraint(SpringLayout.NORTH, timelineSliderPanel, 5, SpringLayout.SOUTH, gifPanel);
+		layout.putConstraint(SpringLayout.WEST, timelineSliderPanel, 5, SpringLayout.WEST, this);
+		add(timelineSliderPanel);
+		
+		// init sound circle panel list
+		scPanelList = new SoundCirclePanelList(gifPanel);
+		scPanelList.setTimingLine(timelineSliderPanel.getSnappedTimingLineCoordiateX()-5, timelineSliderPanel.getValue());
+		layout.putConstraint(SpringLayout.NORTH, scPanelList, 5, SpringLayout.SOUTH, timelineSliderPanel);
+		layout.putConstraint(SpringLayout.WEST, scPanelList, 5, SpringLayout.WEST, this);
+		add(scPanelList);
+		//scPanelList.setPreferredSize(new Dimension(600, 600));
+		
+		packFrameSize();
+		openSoundButton.setEnabled(true);
+	}
+	
+	private void openSound(){
+		// create sound panel
+		scPanelList.addSoundCirclePanel("giggle.wav", gif.getPlayingTime());
+		packFrameSize();
+	}
+	
+	private void generateGifi(){
+		
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
 		// classify action source
-		if(e.getSource() == openGifButton){
-			
-			// open GIF
-			try{
-				gif = GifFactory.readGif("Boglio_02.gif");
-				gifPanel.openGif(gif);
-				gifPanel.showFrame(0);
-			}catch(Exception ex){
-				ex.printStackTrace();
-			}
-			
-			// init timeline
-			timelineSliderPanel = new GifTimelineSliderPanel(gif);
-			timelineSliderPanel.addChangeListener(this);
-			timelineSliderPanel.addMouseMotionListener(this);
-			layout.putConstraint(SpringLayout.NORTH, timelineSliderPanel, 5, SpringLayout.SOUTH, gifPanel);
-			layout.putConstraint(SpringLayout.WEST, timelineSliderPanel, 5, SpringLayout.WEST, this);
-			add(timelineSliderPanel);
-			
-			// init sound circle panel list
-			scPanelList = new SoundCirclePanelList(gifPanel);
-			scPanelList.setTimingLine(timelineSliderPanel.getSnappedTimingLineCoordiateX()-5, timelineSliderPanel.getValue());
-			layout.putConstraint(SpringLayout.NORTH, scPanelList, 5, SpringLayout.SOUTH, timelineSliderPanel);
-			layout.putConstraint(SpringLayout.WEST, scPanelList, 5, SpringLayout.WEST, this);
-			add(scPanelList);
-			//scPanelList.setPreferredSize(new Dimension(600, 600));
-			
-			packFrameSize();
-			openSoundButton.setEnabled(true);
-		}
+		if(e.getSource() == openGifButton)
+			openGif();
 		
-		else if(e.getSource() == openSoundButton){
-			// create sound panel
-			scPanelList.addSoundCirclePanel("giggle.wav", gif.getPlayingTime());
-			packFrameSize();
-			
-		}
+		else if(e.getSource() == openSoundButton)
+			openSound();
+		
+		else if(e.getSource() == generateButton)
+			generateGifi();
 	}
 
 	@Override
+	// It only deals with value changes on slider and animation frame selection
+	// Timing synchronization between gifPanel, scPanelList, and gifTimelineSliderPanel is done in onMouseDragged.
 	public void stateChanged(ChangeEvent e) {
-		// change the animation frame to corresponding time
-		//System.out.println("StateChange!!");
-		
 		
 		if(e.getSource() != timelineSliderPanel.getSlider())
 			return;
 		
-		
+		/*
 		// find the frame of corresponding time
 		int selectedTime = timelineSliderPanel.getValue();
 		//System.out.println("time: " + selectedTime);
@@ -160,29 +184,29 @@ public class MainFrame extends JFrame implements ActionListener, ChangeListener,
 		}
 		catch(Exception ex){
 			ex.printStackTrace();
-		}
-		
-		// TODO: sometimes the state change event is missing. 
-		// This symptom occurs non-synchronized time-line between the time-line slider panel and sound circle panels 
-		// I believe mouse events are more accurate.
-		// draw timing line
-		/*int snappedValue = timelineSliderPanel.getValue() / 100 * 100;
-		if(Math.abs(snappedValue - prevTimelineZone) >= 100){
-			prevTimelineZone = snappedValue; 
-			//System.out.println("Repaint! from statechange listener  prevTimelineZone = " + prevTimelineZone + " time=" + timelineSliderPanel.getValue()) ;
-			
-			timelineSliderPanel.repaint();//.paintImmediately(0, 0, timelineSliderPanel.getPreferredSize().width, timelineSliderPanel.getPreferredSize().height);
-			scPanelList.setTimingLine(timelineSliderPanel.getSnappedTimingLineCoordiateX()-6, snappedValue);
 		}*/
 		
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		System.out.println("Mouse click on MainFrame!");
 		if(e.getSource() == this){
 			// TODO: Do i have to set sound circles invisible?
 			//gifPanel.setSoundCirclesVisible(false);
+			
+			//TODO: what is this?
 			gifPanel.setSoundCircleListener(null);
+			
+			
+		}
+		
+		else if(e.getSource() == timelineSliderPanel.getSlider()){
+			
+			System.out.println("HERE!!!!!!kkk");
+			int v = timelineSliderPanel.getValue();
+			if(Math.abs(v - prevTimelineZone) >= GifTimelineSliderPanel.JSLIDER_MINOR_TICK_SPACE)
+				setTiming(v);
 		}
 		
 	}
@@ -215,14 +239,34 @@ public class MainFrame extends JFrame implements ActionListener, ChangeListener,
 	public void mouseDragged(MouseEvent e) {
 		if(e.getSource() == timelineSliderPanel.getSlider()){
 			int v = timelineSliderPanel.getValue();
-			if(Math.abs(v - prevTimelineZone) >= 100){
-				//System.out.println("DRAGGED!!! " + timelineSliderPanel.getValue());
-				
-				prevTimelineZone = v;
-				timelineSliderPanel.repaint();
-				scPanelList.setTimingLine(timelineSliderPanel.getSnappedTimingLineCoordiateX()-5, v);
-			}
+			if(Math.abs(v - prevTimelineZone) >= GifTimelineSliderPanel.JSLIDER_MINOR_TICK_SPACE)
+				setTiming(v);
 		}
+	}
+	
+	// TODO: fix it to manipulate slider's value also
+	// currently it just set the timing same for timelineSliderPanel, scPanelList, and gifPanel
+	private void setTiming(int time){
+			
+		// find the frame of corresponding time
+		int selectedTime = timelineSliderPanel.getValue();
+		//System.out.println("time: " + selectedTime);
+		
+		for(int index=0; index<gif.getFrameCount(); index++){
+			//System.out.println("gif.getFrameStartingTime(" + index + "):" + gif.getFrameStartingTime(index) );
+			if(selectedTime == gif.getFrameStartingTime(index)){
+				try{ 
+					gifPanel.showFrame(index);
+				}catch(Exception e){ e.printStackTrace(); }
+			}
+				
+		}
+		
+		gifPanel.setTiming(time);
+		prevTimelineZone = time;
+		timelineSliderPanel.repaint();
+		gifPanel.repaint();
+		scPanelList.setTimingLine(timelineSliderPanel.getSnappedTimingLineCoordiateX()-5, time);
 	}
 
 	@Override
@@ -230,7 +274,49 @@ public class MainFrame extends JFrame implements ActionListener, ChangeListener,
 		// TODO Auto-generated method stub
 		
 	}
-	
-	
+
+	@Override
+	public boolean dispatchKeyEvent(KeyEvent e) {
+		// TODO Auto-generated method stub
+		
+		
+		if(KeyEvent.KEY_PRESSED  == e.getID()){
+			System.out.println("key: " + e.getID() +"::" + e.getKeyChar() + "::" + e.getKeyCode() + "::" + e.getKeyLocation());
+			
+			switch(e.getKeyCode()){
+			case 37:	// left
+				System.out.println("left");
+				if(null != timelineSliderPanel){
+					System.out.println("here");
+					timelineSliderPanel.decreaseValueByMinorTickSpace();
+					setTiming(timelineSliderPanel.getValue());
+				}
+				break;
+			case 38:	// up
+				break;
+			case 39:	// right
+				if(null != timelineSliderPanel){
+					timelineSliderPanel.increaseValueByMinorTickSpace();
+					setTiming(timelineSliderPanel.getValue());
+				}
+				break;
+			case 40:	// down
+				break;
+				
+			case 27:	//ESC
+				gifPanel.onEscKeyTyped();
+				break;
+				
+			case 8:		// backspace
+			case 127:	// delete
+				gifPanel.onDeleteSoundCircle();
+				break;
+			
+			}
+			
+			
+		}
+		return false;
+	}
 	
 }
