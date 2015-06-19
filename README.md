@@ -10,7 +10,3 @@ This project implements tools for the new fileformat GIFi in Java and Javascript
 [gifi4js](https://github.com/championv/gifi/wiki/gifi4js) supporting Javascript contains GIFi decoder and player.  
 
 For detailed description about the project, please see the [wiki](https://github.com/championv/gifi/wiki).
-
-# Usage
-
-# Demo
